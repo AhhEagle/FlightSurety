@@ -11,6 +11,30 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+    mapping (address => uint256) private authorizedContracts;
+    uint256 public constant INSURANCE_PRICE_LIMIT = 1 ether;
+    uint256 public constant MINIMUM_FUNDS = 10 ether;
+    uint8 private constant MIN_AIRLINES = 4;
+    uint256 public airlinesCount;
+
+    struct Airline{
+        string name;
+        address airlineAdd;
+        bool isRegistered;
+        uint256 votes;
+        uint256 funded;
+    }
+    mapping (address => Airline) private airlines;
+
+    struct Passenger{
+        address passengerAdd;
+        uint256 credit;
+        mapping(string => uint256) tickectBought;
+    }
+
+    mapping(address => Passenger) private passengers;
+    address[] public passengerAddresses;
+
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -27,6 +51,17 @@ contract FlightSuretyData {
                                 public 
     {
         contractOwner = msg.sender;
+        airlinesCount = 0;
+        authorizedContracts[msg.sender] = 1;
+        passengerAddresses = new address[](0);
+        airlines[msg.sender] = Airline({
+            name: "FlyOlad",
+            airlineAdd: msg.sender,
+            isRegistered: true,
+            votes: 0,
+            funded: 0
+        });
+        airlinesCount++;
     }
 
     /********************************************************************************************/

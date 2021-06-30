@@ -37,6 +37,7 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
+    mapping(address => address[]) private voteAirLine;
 
  
     /********************************************************************************************/
@@ -54,7 +55,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(flightSuretyData.isOperational(), "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -64,6 +65,18 @@ contract FlightSuretyApp {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+    
+     modifier requireIsAirlineActive()
+    {
+        require(flightSuretyData.isActive(msg.sender), "This airline is not active");
+        _;
+    }
+
+     modifier requireAirlineVote(address airlineAdd)
+    {
+        require(!isContain(voteAirLine[airlineAdd]), "You already voted");
         _;
     }
 
@@ -81,6 +94,7 @@ contract FlightSuretyApp {
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = flightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -92,7 +106,11 @@ contract FlightSuretyApp {
                             pure 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return flightSuretyData.isOperational();  // Modify to call data contract's status
+    }
+
+    function setDataContract(address dataContract) external requireContractOwner{
+        flightSuretyData = flightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
