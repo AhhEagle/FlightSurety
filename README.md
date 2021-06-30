@@ -11,6 +11,7 @@ To install, download or clone the repo, then:
 `npm install`
 `truffle compile`
 
+
 ## Develop Client
 
 To run truffle tests:

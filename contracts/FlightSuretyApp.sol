@@ -30,6 +30,8 @@ contract FlightSuretyApp {
 
     struct Flight {
         bool isRegistered;
+        string flightCode;
+        string destination;
         uint8 statusCode;
         uint256 updatedTimestamp;        
         address airline;

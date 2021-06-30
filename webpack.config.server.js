@@ -35,4 +35,5 @@ module.exports = {
         path: path.join(__dirname, 'prod/server'),
         filename: 'server.js'
     }
+    
 }
