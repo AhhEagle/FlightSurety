@@ -31,10 +31,10 @@ contract FlightSuretyApp {
     struct Flight {
         bool isRegistered;
         string flightCode;
+        address airline;
         string destination;
         uint8 statusCode;
         uint256 updatedTimestamp;        
-        address airline;
     }
     mapping(bytes32 => Flight) private flights;
     mapping(address => address[]) private voteAirLine;
@@ -123,13 +123,30 @@ contract FlightSuretyApp {
     *
     */   
     function registerAirline
-                            (   
+                            ( 
+                                address airlineAdd,
+                                string name  
                             )
-                            external
-                            pure
-                            returns(bool success, uint256 votes)
+                            public
+                            requiIsOperational
+                            requireIsAirlineActive
+                            requireAirLineVote
     {
-        return (success, 0);
+       bool success = flightSuretyData.registerAirline(airlineAdd, name);
+       if(success = true){
+           voteAirLine[airlineAdd].push(msg.sender);
+       } 
+    }
+
+    function ContainsVote(address[] voters) internal view returns(bool){
+        bool voted = false;
+        for(uint256 i =0; i <voters.length; i++){
+            if(voters[i] == msg.sender){
+                voted = true;
+                break;
+            }
+        }
+        return voted;
     }
 
 
@@ -139,11 +156,25 @@ contract FlightSuretyApp {
     */  
     function registerFlight
                                 (
+                                    string flight,
+                                    string destination,
+                                    uint256 timestamp
                                 )
                                 external
-                                pure
+                                requireIsOperational
+                                requireIsAirlineActive
     {
+      bytes32 key = keccak256(abi.encodePacked(flight, msg.sender));
+      require(!flights[key].isRegistered, "Flight already registered");
 
+      flights[key] = Flight({
+          isRegistered: true,
+          flightCode: flight,
+          airline: msg.sender,
+          destination: destination,
+          statusCode: STATUS_CODE_UNKNOWN
+          updatedTimestamp: timestamp
+      });
     }
     
    /**
@@ -158,8 +189,17 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
+                                requireIsOperational
     {
+      bytes32 key = keccak256(abi.encodePacked(flight, airline));
+      require(!flights[key].isRegistered, "Flight already registered");
+
+      flights[key].updatedTimestamp = timestamp;
+      flights[key].statusCode = statusCode;
+
+      if(statusCode == STATUS_CODE_LATE_AIRLINE){
+          flightSuretyData.creditInsurees(flight)
+      }
     }
 
 
@@ -171,6 +211,7 @@ contract FlightSuretyApp {
                             uint256 timestamp                            
                         )
                         external
+                        requireIsOperational
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -183,6 +224,19 @@ contract FlightSuretyApp {
 
         emit OracleRequest(index, airline, flight, timestamp);
     } 
+
+    function FlightStatus(
+                string flight,
+                address airlineadd
+    ) external view returns(uint8){
+       bytes32 key = keccak256(abi.encodePacked(flight, airlineadd));
+       return flights[key].statusCode;
+
+    }
+
+    function withdrawInsurance() public requireIsOperational returns (uint256, uint256, uint256, uint256, address, address){
+        return (flightSuretyData.pay(msg.sender));
+    }
 
 
 // region ORACLE MANAGEMENT
@@ -357,3 +411,11 @@ contract FlightSuretyApp {
 // endregion
 
 }   
+contract FlightSuretyData {
+    function isOperational() public view returns(bool);
+    function isActive(address airline) public view returns(bool);
+    function registerAirline(address airlineAdd, string name) external returns(bool);
+    function getAirlineVotes(address airline) public view returns (uint256 votes);
+    function creditInsurees(string flightCode) external;
+    function pay(address payable insuredPassenger)  public returns (uint256, uint256, uint256, uint256, address, address)
+}
