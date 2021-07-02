@@ -90,11 +90,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContract
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
-        flightSuretyData = flightSuretyData(dataContract);
+        flightSuretyData = FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -103,14 +104,14 @@ contract FlightSuretyApp {
 
     function isOperational() 
                             public 
-                            pure 
+                            view
                             returns(bool) 
     {
         return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
 
     function setDataContract(address dataContract) external requireContractOwner{
-        flightSuretyData = flightSuretyData(dataContract);
+        flightSuretyData = FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -128,9 +129,9 @@ contract FlightSuretyApp {
                                 string name  
                             )
                             public
-                            requiIsOperational
+                            requireIsOperational
                             requireIsAirlineActive
-                            requireAirLineVote
+                            requireAirlineVote(airlineAdd)
     {
        bool success = flightSuretyData.registerAirline(airlineAdd, name);
        if(success = true){
@@ -138,7 +139,7 @@ contract FlightSuretyApp {
        } 
     }
 
-    function ContainsVote(address[] voters) internal view returns(bool){
+    function isContain(address[] voters) internal view returns(bool){
         bool voted = false;
         for(uint256 i =0; i <voters.length; i++){
             if(voters[i] == msg.sender){
@@ -172,7 +173,7 @@ contract FlightSuretyApp {
           flightCode: flight,
           airline: msg.sender,
           destination: destination,
-          statusCode: STATUS_CODE_UNKNOWN
+          statusCode: STATUS_CODE_UNKNOWN,
           updatedTimestamp: timestamp
       });
     }
@@ -198,7 +199,7 @@ contract FlightSuretyApp {
       flights[key].statusCode = statusCode;
 
       if(statusCode == STATUS_CODE_LATE_AIRLINE){
-          flightSuretyData.creditInsurees(flight)
+          flightSuretyData.creditInsurees(flight);
       }
     }
 
@@ -417,5 +418,5 @@ contract FlightSuretyData {
     function registerAirline(address airlineAdd, string name) external returns(bool);
     function getAirlineVotes(address airline) public view returns (uint256 votes);
     function creditInsurees(string flightCode) external;
-    function pay(address payable insuredPassenger)  public returns (uint256, uint256, uint256, uint256, address, address)
+    function pay(address insuredPassenger)  public returns (uint256, uint256, uint256, uint256, address, address);
 }

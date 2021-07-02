@@ -174,7 +174,7 @@ contract FlightSuretyData {
     *
     */   
     function registerAirline (  
-                                address airlineAdd,
+                                address airlineAddress,
                                 string name
                             )
                             external
@@ -185,16 +185,16 @@ contract FlightSuretyData {
                     require(airlineAddress != address(0), "'airlineAddress' must be a valid address.");
                     require(!airlines[airlineAddress].isRegistered, "Airline is already registered.");
                     if(airlinesCount < MIN_AIRLINES){
-                        airlines[airlineAdd] = Airline({
+                        airlines[airlineAddress] = Airline({
                                                           name: name,
-                                                          airlineAdd: airlineAdd,
+                                                          airlineAdd: airlineAddress,
                                                           isRegistered: true,
                                                           votes: 1,
                                                           funded: 0
                                                          });
         airlinesCount++;
      } else {
-         require(isVote(airlineAdd), "error occured");
+         require(isVote(airlineAddress), "error occured");
      }
      return (true);
     }
@@ -216,14 +216,14 @@ contract FlightSuretyData {
         if(!checkIfContains(msg.sender)){
             passengerAddresses.push(msg.sender);
         }
-        if (passengers[msg.sender].passengerWallet != msg.sender) {
+        if (passengers[msg.sender].passengerAdd != msg.sender) {
             passengers[msg.sender] = Passenger({
                                                 passengerAdd: msg.sender,
                                                 credit: 0
                                         });
-            passengers[msg.sender].boughtFlight[flightCode] = msg.value;
+            passengers[msg.sender].tickectBought[flightCode] = msg.value;
         } else {
-            passengers[msg.sender].boughtFlight[flightCode] = msg.value;
+            passengers[msg.sender].tickectBought[flightCode] = msg.value;
         }
         if (msg.value > INSURANCE_PRICE_LIMIT) {
             msg.sender.transfer(msg.value.sub(INSURANCE_PRICE_LIMIT));
@@ -231,8 +231,8 @@ contract FlightSuretyData {
 
     }
 
-    function checkIfContains(address passenger) internal view returns(bool inList){
-        listed = false;
+    function checkIfContains(address passenger) internal view returns(bool){
+        bool listed = false;
         for (uint256 c = 0; c < passengerAddresses.length; c++) {
             if (passengerAddresses[c] == passenger) {
                 listed = true;
@@ -253,10 +253,10 @@ contract FlightSuretyData {
                                 requireIsOperational
     {
         for (uint256 c = 0; c < passengerAddresses.length; c++) {
-            if(passengers[passengerAddresses[c]].boughtFlight[flightCode] != 0) {
+            if(passengers[passengerAddresses[c]].tickectBought[flightCode] != 0) {
                 uint256 savedCredit = passengers[passengerAddresses[c]].credit;
-                uint256 payedPrice = passengers[passengerAddresses[c]].boughtFlight[flightCode];
-                passengers[passengerAddresses[c]].boughtFlight[flightCode] = 0;
+                uint256 payedPrice = passengers[passengerAddresses[c]].tickectBought[flightCode];
+                passengers[passengerAddresses[c]].tickectBought[flightCode] = 0;
                 passengers[passengerAddresses[c]].credit = savedCredit + payedPrice + payedPrice.div(2);
             }
         }
@@ -272,7 +272,7 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay(address payable insuredPassenger)  public requireIsOperational returns (uint256, uint256, uint256, uint256, address, address)
+    function pay(address insuredPassenger)  public requireIsOperational returns (uint256, uint256, uint256, uint256, address, address)
     {
         require(insuredPassenger == tx.origin, "Contracts not allowed");
         require(passengers[insuredPassenger].credit > 0, "The company didn't put any money to be withdrawed by you");
@@ -308,7 +308,7 @@ contract FlightSuretyData {
                         external
                         view
                         returns (bool) {
-        if (airlines[airline].airlineWallet == airline) {
+        if (airlines[airline].airlineAdd == airline) {
             return true;
         } else {
             return false;
