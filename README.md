@@ -1,6 +1,6 @@
 # FlightSurety
 
-FlightSurety is a project that enables flight passengers purchase insurance while purchasing 
+FlightSurety is a project that enables flight passengers purchase insurance while purchasing flight ticket and be able to get back their money and a compensation when issues arises as a result of the airline fault
 
 ## Install
 
