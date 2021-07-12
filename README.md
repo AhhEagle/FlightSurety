@@ -1,6 +1,6 @@
 # FlightSurety
 
-FlightSurety is a sample application project for Udacity's Blockchain course.
+FlightSurety is a project that enables flight passengers purchase insurance while purchasing flight ticket and be able to get back their money and a compensation when issues arises as a result of the airline fault
 
 ## Install
 
@@ -17,6 +17,7 @@ To install, download or clone the repo, then:
 To run truffle tests:
 
 `truffle test ./test/flightSurety.js`
+
 `truffle test ./test/oracles.js`
 
 To use the dapp:
