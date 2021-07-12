@@ -1,6 +1,9 @@
 
 var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
+var Web3 = require('web3')
+var url = 'HTTP://127.0.0.1:7545';
+var web3 = new Web3(url);
 
 contract('Flight Surety Tests', async (accounts) => {
 
@@ -89,6 +92,11 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
   });
- 
+  
+  it('contract owner is registered as an airline when contract is deployed', async () => {
+    let airlinesCount = await config.flightSuretyData.airlinesCount.call(); 
+    let isAirline = await config.flightSuretyData.isAirline.call(accounts[0]); 
+    assert.equal(isAirline, true, "First airline should be registired when contact is deployed.");
+  });
 
 });
