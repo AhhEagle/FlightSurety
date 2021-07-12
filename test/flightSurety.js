@@ -99,4 +99,31 @@ contract('Flight Surety Tests', async (accounts) => {
     assert.equal(isAirline, true, "First airline should be registired when contact is deployed.");
   });
 
+it("(airline) needs 50% votes to register an Airline using registerAirline() once there are 4 or more airlines registered", async () => {
+
+    try {
+        await config.flightSuretyApp.registerAirline(accounts[2], "dimeji airline", {from: accounts[0]});
+        await config.flightSuretyApp.registerAirline(accounts[3], "arik air", {from: accounts[0]});
+        await config.flightSuretyApp.registerAirline(accounts[4], "air peace", {from: accounts[0]});
+    }
+    catch(e) {
+      console.log(e);
+    }
+    let result = await config.flightSuretyData.isAirline.call(accounts[4]);
+    let airlinesCount = await config.flightSuretyData.airlinesCount.call(); 
+
+    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided adequate funding");
+    
+  });
+
+   it('(airline) can register a flight using registerFlight()', async () => {
+    flightTimestamp = Math.floor(Date.now() / 1000);
+    try {
+        await config.flightSuretyApp.registerFlight("air101", "Nigeria", flightTimestamp, {from: config.firstAirline});
+    }
+    catch(e) {
+      console.log(e);
+    }
+  });
+
 });
